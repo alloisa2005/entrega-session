@@ -13,7 +13,7 @@ app.use(express.urlencoded({extended:true}));
 app.use(express.static(__dirname + '/public'));
 
 app.get('/', (req, res) => {  
-  res.render('home');
+  res.render('home',{msg: 'Holaaaaa'});
 })
 
 app.listen(PORT, () => console.log(`Server Up on port ${PORT}`))
