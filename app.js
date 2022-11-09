@@ -1,5 +1,6 @@
 
 const express = require('express')
+const bcrypt = require('bcryptjs')
 const mongoose = require('mongoose')
 const session = require('express-session')
 const MongoDBSession = require('connect-mongodb-session')(session)
@@ -20,7 +21,7 @@ const store = new MongoDBSession({
   collection: 'mySessions'
 })
 
-app.use(session({  
+app.use(session({    
   secret: 'mi palabra secreta',
   resave: false,
   saveUninitialized: false,  
@@ -31,18 +32,26 @@ app.use(session({
 app.set('views', './views');
 app.set('view engine', 'ejs');
 
-app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 app.use(express.static(__dirname + '/public'));
 
+///////////  MIDDLEWARE  ///////////////////
+const isAuth = (req, res, next) => {     
+
+  if(!req.session.user) {
+    res.redirect('/login')
+  }else{    
+    next();
+  }
+}
 
 
 app.get('/', (req, res) => {     
   res.redirect('/login');  
 })
 
-app.get('/dashboard', (req, res) => {  
-  res.render('dashboard');
+app.get('/dashboard', isAuth, (req, res) => {  
+  res.render('dashboard', {user: req.session.user.username});
 })
 
 app.get('/register', (req, res) => {  
@@ -50,25 +59,57 @@ app.get('/register', (req, res) => {
 })
 
 app.get('/login', (req, res) => {  
-  res.render('login');
+  res.render('login', {msg_error: ''});   
 })
 
+app.post('/login', async (req, res) => {
 
-app.get('/register', (req, res) => {  
-  res.render('logout');
+  const { email, password } = req.body;
+
+  const user = await UserModel.findOne({ email })
+
+  if(!user) {
+    return res.render('login', {msg_error: 'Email no registrado'})
+  }
+
+  const passCoincide = await bcrypt.compare(password, user.password)
+
+  if(!passCoincide){
+    return res.render('login', {msg_error: 'Contraseña incorrecta'})
+  }
+
+  req.session.user = user;
+  res.render('dashboard', {user: user.username})
 })
 
 app.post('/register', async (req, res) => {  
-  let { email } = req.body;
+
+  let { username, email, password } = req.body;
+
   let user = await UserModel.findOne({ email})
 
-  if(!user){
-    let newUser = await UserModel.create(req.body);
-    await newUser.save();
-    res.render('login')
-  }else{
-    res.render('register', {msg_error: 'Usuario ya existe'})
+  let hashedPassword = await bcrypt.hash(password, 12);
+
+  if(user){
+    return res.render('register', {msg_error: 'Usuario ya existe'});
   }
+  
+  user = await UserModel.create({ 
+    username, 
+    email, 
+    password: hashedPassword
+  });
+  
+  await user.save();
+  res.render('login', {msg_error:''})
+  
+})
+
+app.post('/logout', (req, res) => {
+  req.session.destroy( (err) => {
+    if(err) throw err;
+    res.redirect('/login');
+  })
 })
 
 app.listen(PORT, () => console.log(`Server Up on port ${PORT}`))

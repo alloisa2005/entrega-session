@@ -14,10 +14,16 @@
     <nav class="h-[80px] w-full flex items-center justify-between text-white">      
       
       <a href="/"> <h1 class="text-xl font-bold">Desafío Sessions</h1>  </a>             
+      
+      <p class="font-semibold text-lg text-gray-400"> Bienvenido, <span class="text-white"> <%= user %> </span>  </p>
 
       <ul class="flex items-center gap-x-5 font-semibold text-lg text-gray-400">
         <li class="capitalize hover:text-white hover:scale-105 duration-300 cursor-pointer"><a href="/dashboard">dashboard</a></li>        
-        <li class="capitalize hover:text-white hover:scale-105 duration-300 cursor-pointer"><a href="/logout">log out</a></li>
+        <li class="capitalize hover:text-white hover:scale-105 duration-300 cursor-pointer">
+          <form action="/logout" method="POST">
+            <button>Log out</button>
+          </form>
+        </li>
       </ul>
     </nav>
 
