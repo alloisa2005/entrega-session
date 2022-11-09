@@ -24,23 +24,25 @@
       <div class="w-[650px] mx-auto text-center">
         <h3 class="text-3xl text-white font-semibold italic">Register New User</h3>
 
-        <form class="py-6">
+        <form class="py-6" action="/register" method="POST">
           <div class="flex justify-center items-center gap-x-4 py-4">
             <label class="text-white w-[70px]">Username</label>
-            <input class="py-1 px-2" type="text">
+            <input class="py-1 px-2" type="text" name="username">
           </div>
 
           <div class="flex justify-center items-center gap-x-4 py-4">
             <label class="text-white w-[70px]">Email</label>
-            <input class="py-1 px-2" type="text">
+            <input class="py-1 px-2" type="text" name="email">
           </div>
 
           <div class="flex justify-center items-center gap-x-4 py-4">
             <label class="text-white w-[70px]">Password</label>
-            <input class="py-1 px-2" type="text">
+            <input class="py-1 px-2" type="password" name="password">
           </div>
-          
-          <button class="mt-4 py-2 bg-gray-600 hover:bg-gray-400 hover:shadow-lg hover:shadow-black duration-300 w-[300px] text-white rounded-md text-xl">Create User</button>
+          <% if (msg_error) { %>
+           <p class="text-xl font-semibold italic text-red-500"><%= msg_error %>  </p>
+          <% } %>
+          <button type="submit" class="mt-4 py-2 bg-gray-600 hover:bg-gray-400 hover:shadow-lg hover:shadow-black duration-300 w-[300px] text-white rounded-md text-xl">Create User</button>
         </form>
       </div>
     </section>

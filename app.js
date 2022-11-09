@@ -46,15 +46,29 @@ app.get('/dashboard', (req, res) => {
 })
 
 app.get('/register', (req, res) => {  
-  res.render('register');
+  res.render('register',{msg_error:''});
 })
 
 app.get('/login', (req, res) => {  
   res.render('login');
 })
 
+
 app.get('/register', (req, res) => {  
   res.render('logout');
+})
+
+app.post('/register', async (req, res) => {  
+  let { email } = req.body;
+  let user = await UserModel.findOne({ email})
+
+  if(!user){
+    let newUser = await UserModel.create(req.body);
+    await newUser.save();
+    res.render('login')
+  }else{
+    res.render('register', {msg_error: 'Usuario ya existe'})
+  }
 })
 
 app.listen(PORT, () => console.log(`Server Up on port ${PORT}`))
