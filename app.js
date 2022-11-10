@@ -22,6 +22,7 @@ const store = new MongoDBSession({
 })
 
 app.use(session({    
+  key: 'user_id',
   secret: 'mi palabra secreta',
   resave: false,
   saveUninitialized: false,  
@@ -36,7 +37,7 @@ app.use(express.urlencoded({extended:true}));
 app.use(express.static(__dirname + '/public'));
 
 ///////////  MIDDLEWARE  ///////////////////
-const isAuth = (req, res, next) => {     
+const isAuth = (req, res, next) => {         
 
   if(!req.session.user) {
     res.redirect('/login')
@@ -86,22 +87,34 @@ app.post('/register', async (req, res) => {
 
   let { username, email, password } = req.body;
 
-  let user = await UserModel.findOne({ email})
+  try {
+    // Busco si existe registrado el mail
+    let user = await UserModel.findOne({ email })
+    
+    if(user){
+      return res.render('register', {msg_error: 'Email ya existe'});
+    }
+    
+    // Bsuco si el username está registrado
+    user = await UserModel.findOne({ username })
 
-  let hashedPassword = await bcrypt.hash(password, 12);
+    if(user){
+      return res.render('register', {msg_error: 'Usuario ya existe'});
+    }
 
-  if(user){
-    return res.render('register', {msg_error: 'Usuario ya existe'});
+    let hashedPassword = await bcrypt.hash(password, 12);
+
+    user = await UserModel.create({ 
+      username, 
+      email, 
+      password: hashedPassword
+    });
+    
+    await user.save();
+    res.render('login', {msg_error:''})
+  } catch (error) {
+    return res.render('register', {msg_error: error.message});
   }
-  
-  user = await UserModel.create({ 
-    username, 
-    email, 
-    password: hashedPassword
-  });
-  
-  await user.save();
-  res.render('login', {msg_error:''})
   
 })
 
